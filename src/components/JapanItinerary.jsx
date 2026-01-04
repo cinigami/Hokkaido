@@ -1,0 +1,143 @@
+import React, { useState, useEffect } from 'react';
+import { Snowflake, Edit3 } from 'lucide-react';
+import { initialItineraryData } from '../data/itineraryData';
+import Snowflakes from './Snowflakes';
+import DayCard from './DayCard';
+import MapTab from './MapTab';
+
+const STORAGE_KEY = 'hokkaido-itinerary';
+
+const JapanItinerary = () => {
+  const [itinerary, setItinerary] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : initialItineraryData;
+    } catch {
+      return initialItineraryData;
+    }
+  });
+  const [activeTab, setActiveTab] = useState('itinerary');
+  const [expandedDay, setExpandedDay] = useState(1);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Persist to localStorage on changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(itinerary));
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+  }, [itinerary]);
+
+  const tabs = [
+    { id: 'itinerary', label: 'Itinerary', icon: '📅' },
+    { id: 'map', label: 'Map', icon: '🗺️' },
+  ];
+
+  const handleUpdateDay = (updatedDay) => {
+    setItinerary(itinerary.map(d => d.day === updatedDay.day ? updatedDay : d));
+  };
+
+  const handleResetData = () => {
+    if (window.confirm('Reset all changes? This will restore the original itinerary.')) {
+      setItinerary(initialItineraryData);
+    }
+  };
+
+  return (
+    <div
+      className="min-h-screen relative"
+      style={{
+        background: 'linear-gradient(180deg, #1a365d 0%, #2d4a7c 30%, #7ba3c9 70%, #b8d4e8 100%)'
+      }}
+    >
+      <Snowflakes />
+
+      <div className="relative z-10 pt-8 pb-6 px-4 text-center">
+        <div className="inline-flex items-center gap-2 mb-3 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm">
+          <Snowflake className="w-4 h-4 text-white" />
+          <span className="text-xs font-semibold text-white tracking-wider uppercase">Winter 2026</span>
+        </div>
+        <h1 className="text-3xl font-black text-white tracking-tight mb-2">北海道 Adventure</h1>
+        <p className="text-white/80 text-sm">Sapporo • Otaru • Shikotsu • Jozankei</p>
+        <p className="text-white/60 text-xs mt-1">January 23-31, 2026 • Family of 4</p>
+        <div className="flex justify-center gap-2 mt-3 flex-wrap">
+          <span className="px-2 py-1 rounded-full bg-red-500/80 text-white text-xs font-medium">2 Markets</span>
+          <span className="px-2 py-1 rounded-full bg-blue-500/80 text-white text-xs font-medium">2 Ski Resorts</span>
+          <span className="px-2 py-1 rounded-full bg-orange-500/80 text-white text-xs font-medium">Onsen</span>
+        </div>
+      </div>
+
+      <div className="relative z-10 px-4 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-2 flex-1 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-white text-gray-800 shadow-lg'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+                aria-pressed={activeTab === tab.id}
+              >
+                {tab.icon} {tab.label}
+              </button>
+            ))}
+          </div>
+          {activeTab === 'itinerary' && (
+            <button
+              onClick={() => setIsEditMode(!isEditMode)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition-all ${
+                isEditMode
+                  ? 'bg-green-500 text-white'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+              aria-pressed={isEditMode}
+            >
+              <Edit3 className="w-4 h-4" />
+              {isEditMode ? 'Done' : 'Edit'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="relative z-10 px-4 pb-8">
+        {activeTab === 'itinerary' && (
+          <div>
+            {isEditMode && (
+              <div className="mb-4 p-3 rounded-xl bg-green-500/20 border border-green-400/30 text-green-100 text-sm flex items-center justify-between">
+                <span>Edit mode: Tap activities to edit, or add new ones</span>
+                <button
+                  onClick={handleResetData}
+                  className="text-xs underline hover:no-underline"
+                >
+                  Reset all
+                </button>
+              </div>
+            )}
+            {itinerary.map((day) => (
+              <DayCard
+                key={day.day}
+                day={day}
+                isExpanded={expandedDay === day.day}
+                onToggle={() => setExpandedDay(expandedDay === day.day ? null : day.day)}
+                onUpdateDay={handleUpdateDay}
+                isEditMode={isEditMode}
+              />
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'map' && <MapTab itinerary={itinerary} />}
+      </div>
+
+      <div className="relative z-10 text-center pb-8 text-white/50 text-xs">
+        Have an EPIC trip!
+      </div>
+    </div>
+  );
+};
+
+export default JapanItinerary;
