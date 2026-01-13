@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Edit3, Plus, Clock } from 'lucide-react';
 import { getIcon } from '../utils/iconMap';
 import MapsButton from './MapsButton';
@@ -14,10 +14,8 @@ const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode, globalAut
   // Determine if sorting is enabled for this day
   const isSortEnabled = localSortOverride !== null ? localSortOverride : globalAutoSort;
 
-  // Get sorted or original activities
-  const displayActivities = useMemo(() => {
-    return isSortEnabled ? sortDayItems(day.activities) : day.activities;
-  }, [day.activities, isSortEnabled]);
+  // Get sorted or original activities (computed on each render for reliability)
+  const displayActivities = isSortEnabled ? sortDayItems(day.activities) : day.activities;
 
   const handleSaveActivity = (activity) => {
     const existingIndex = day.activities.findIndex(a => a.id === activity.id);
