@@ -1,13 +1,23 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Edit3, Plus } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { ChevronDown, ChevronUp, Edit3, Plus, Clock } from 'lucide-react';
 import { getIcon } from '../utils/iconMap';
 import MapsButton from './MapsButton';
 import ActivityEditor from './ActivityEditor';
+import { sortDayItems } from '../utils/timeSort';
 
-const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode }) => {
+const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode, globalAutoSort = true }) => {
   const IconComponent = getIcon(day.icon);
   const [editingActivity, setEditingActivity] = useState(null);
   const [showAddNew, setShowAddNew] = useState(false);
+  const [localSortOverride, setLocalSortOverride] = useState(null); // null = use global, true/false = override
+
+  // Determine if sorting is enabled for this day
+  const isSortEnabled = localSortOverride !== null ? localSortOverride : globalAutoSort;
+
+  // Get sorted or original activities
+  const displayActivities = useMemo(() => {
+    return isSortEnabled ? sortDayItems(day.activities) : day.activities;
+  }, [day.activities, isSortEnabled]);
 
   const handleSaveActivity = (activity) => {
     const existingIndex = day.activities.findIndex(a => a.id === activity.id);
@@ -68,6 +78,23 @@ const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode }) => {
               </span>
               <span className="text-xs text-gray-400">&#8226;</span>
               <span className="text-xs text-gray-500 font-medium">{day.date}</span>
+              {isExpanded && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLocalSortOverride(isSortEnabled ? false : true);
+                  }}
+                  className={`ml-auto px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 transition-all ${
+                    isSortEnabled
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-gray-100 text-gray-500'
+                  }`}
+                  title={isSortEnabled ? 'Sorted by time' : 'Original order'}
+                >
+                  <Clock className="w-3 h-3" />
+                  {isSortEnabled ? 'Sorted' : 'Unsorted'}
+                </button>
+              )}
             </div>
             <h3 className="text-lg font-bold text-gray-800">{day.title}</h3>
             <p className="text-sm text-gray-500 truncate">{day.location}</p>
@@ -80,7 +107,7 @@ const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode }) => {
         {isExpanded && (
           <div id={`day-${day.day}-content`} className="px-5 pb-5 border-t border-gray-100">
             <div className="mt-4 space-y-2">
-              {day.activities.map((activity) => {
+              {displayActivities.map((activity) => {
                 const ActivityIcon = getIcon(activity.icon);
                 return (
                   <div

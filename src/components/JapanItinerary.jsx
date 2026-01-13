@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Snowflake, Edit3 } from 'lucide-react';
+import { Snowflake, Edit3, Clock } from 'lucide-react';
 import { initialItineraryData } from '../data/itineraryData';
 import { supabase, fetchItinerary, saveItinerary, deleteItinerary } from '../lib/supabase';
 import Snowflakes from './Snowflakes';
@@ -7,6 +7,7 @@ import DayCard from './DayCard';
 import MapTab from './MapTab';
 
 const STORAGE_KEY = 'hokkaido-itinerary';
+const SORT_PREF_KEY = 'hokkaido-autosort';
 
 const JapanItinerary = () => {
   const [itinerary, setItinerary] = useState(initialItineraryData);
@@ -15,7 +16,24 @@ const JapanItinerary = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [autoSortByTime, setAutoSortByTime] = useState(() => {
+    try {
+      const saved = localStorage.getItem(SORT_PREF_KEY);
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
   const isInitialLoad = useRef(true);
+
+  // Persist sort preference
+  useEffect(() => {
+    try {
+      localStorage.setItem(SORT_PREF_KEY, JSON.stringify(autoSortByTime));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [autoSortByTime]);
 
   // Load data on mount - prefer Supabase, fallback to localStorage
   useEffect(() => {
@@ -147,18 +165,33 @@ const JapanItinerary = () => {
             ))}
           </div>
           {activeTab === 'itinerary' && (
-            <button
-              onClick={() => setIsEditMode(!isEditMode)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition-all ${
-                isEditMode
-                  ? 'bg-green-500 text-white'
-                  : 'bg-white/20 text-white hover:bg-white/30'
-              }`}
-              aria-pressed={isEditMode}
-            >
-              <Edit3 className="w-4 h-4" />
-              {isEditMode ? 'Done' : 'Edit'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAutoSortByTime(!autoSortByTime)}
+                className={`px-3 py-2 rounded-full text-sm font-semibold flex items-center gap-1.5 transition-all ${
+                  autoSortByTime
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+                aria-pressed={autoSortByTime}
+                title={autoSortByTime ? 'Auto-sort by time: ON' : 'Auto-sort by time: OFF'}
+              >
+                <Clock className="w-4 h-4" />
+                <span className="hidden sm:inline">{autoSortByTime ? 'Sorted' : 'Unsorted'}</span>
+              </button>
+              <button
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition-all ${
+                  isEditMode
+                    ? 'bg-green-500 text-white'
+                    : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+                aria-pressed={isEditMode}
+              >
+                <Edit3 className="w-4 h-4" />
+                {isEditMode ? 'Done' : 'Edit'}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -191,6 +224,7 @@ const JapanItinerary = () => {
                 onToggle={() => setExpandedDay(expandedDay === day.day ? null : day.day)}
                 onUpdateDay={handleUpdateDay}
                 isEditMode={isEditMode}
+                globalAutoSort={autoSortByTime}
               />
             ))}
           </div>
