@@ -28,7 +28,7 @@ export const initialItineraryData = [
       { id: 2, time: "07:50 AM", activity: "Arrive New Chitose Airport", icon: "MapPin", location: { name: "New Chitose Airport", lat: 42.7752, lng: 141.6925 } },
       { id: 3, time: "09:30 AM", activity: "Airport bus to city", icon: "Car", location: null },
       { id: 4, time: "10:00 AM", activity: "Arrive Misono (early luggage drop)", icon: "MapPin", location: { name: "Misono Sapporo", lat: 43.0476, lng: 141.3640 } },
-      { id: 5, time: "16:00 PM", activity: "Check in Sunny Parkside Apartment", icon: "Home", location: { name: "Sunny Parkside Apartment", lat: 43.0476, lng: 141.3640 } },
+      { id: 5, time: "16:00 PM", activity: "Check in Sunny Parkside Apartment", icon: "Home", location: { name: "Sunny Parkside Apartment", lat: 43.0476, lng: 141.3640 }, link: "https://folio.guide/mitte-misono/property" },
       { id: 6, time: "Evening", activity: "Grocery shopping, explore neighborhood", icon: "ShoppingBag", location: null },
     ],
     sleep: "Sunny Parkside Apartment, Sapporo",

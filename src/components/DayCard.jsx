@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Edit3, Plus, Clock } from 'lucide-react';
+import { ChevronDown, ChevronUp, Edit3, Plus, Clock, ExternalLink } from 'lucide-react';
 import { getIcon } from '../utils/iconMap';
 import MapsButton from './MapsButton';
 import ActivityEditor from './ActivityEditor';
@@ -119,7 +119,20 @@ const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode, globalAut
                       <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                         {activity.time}
                       </span>
-                      <p className="text-sm text-gray-700 mt-0.5">{activity.activity}</p>
+                      <p className="text-sm text-gray-700 mt-0.5">
+                        {activity.activity}
+                        {activity.link && (
+                          <a
+                            href={activity.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center ml-2 text-blue-500 hover:text-blue-700"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </p>
                       {activity.location && (
                         <div className="mt-2">
                           <MapsButton location={activity.location} />
