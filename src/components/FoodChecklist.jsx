@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Check, Plus, Trash2, Edit3, X } from 'lucide-react';
+import { Check, Plus, Trash2, Edit3, X, MapPin } from 'lucide-react';
 
 const FoodChecklist = ({ foods, onUpdateFoods }) => {
   const [newFood, setNewFood] = useState('');
   const [newNotes, setNewNotes] = useState('');
+  const [newLocation, setNewLocation] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editLocation, setEditLocation] = useState('');
 
   const handleAddFood = () => {
     if (!newFood.trim()) return;
@@ -15,12 +17,14 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
       id: Date.now(),
       name: newFood.trim(),
       notes: newNotes.trim(),
+      location: newLocation.trim(),
       checked: false
     };
 
     onUpdateFoods([...foods, newItem]);
     setNewFood('');
     setNewNotes('');
+    setNewLocation('');
   };
 
   const handleToggleCheck = (id) => {
@@ -37,6 +41,7 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
     setEditingId(food.id);
     setEditText(food.name);
     setEditNotes(food.notes || '');
+    setEditLocation(food.location || '');
   };
 
   const handleSaveEdit = () => {
@@ -44,18 +49,20 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
 
     onUpdateFoods(foods.map(food =>
       food.id === editingId
-        ? { ...food, name: editText.trim(), notes: editNotes.trim() }
+        ? { ...food, name: editText.trim(), notes: editNotes.trim(), location: editLocation.trim() }
         : food
     ));
     setEditingId(null);
     setEditText('');
     setEditNotes('');
+    setEditLocation('');
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditText('');
     setEditNotes('');
+    setEditLocation('');
   };
 
   const uncheckedFoods = foods.filter(f => !f.checked);
@@ -82,7 +89,15 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
             type="text"
             value={newNotes}
             onChange={(e) => setNewNotes(e.target.value)}
-            placeholder="Notes (optional - e.g., at Nijo Market)"
+            placeholder="Notes (optional - e.g., must try!)"
+            className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 text-sm"
+            onKeyDown={(e) => e.key === 'Enter' && handleAddFood()}
+          />
+          <input
+            type="text"
+            value={newLocation}
+            onChange={(e) => setNewLocation(e.target.value)}
+            placeholder="Location (optional - e.g., Nijo Market, Sapporo)"
             className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-800 placeholder-gray-500 text-sm"
             onKeyDown={(e) => e.key === 'Enter' && handleAddFood()}
           />
@@ -108,6 +123,7 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
                 isEditing={editingId === food.id}
                 editText={editText}
                 editNotes={editNotes}
+                editLocation={editLocation}
                 onToggleCheck={handleToggleCheck}
                 onDelete={handleDelete}
                 onStartEdit={handleStartEdit}
@@ -115,6 +131,7 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
                 onCancelEdit={handleCancelEdit}
                 setEditText={setEditText}
                 setEditNotes={setEditNotes}
+                setEditLocation={setEditLocation}
               />
             ))}
           </div>
@@ -133,6 +150,7 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
                 isEditing={editingId === food.id}
                 editText={editText}
                 editNotes={editNotes}
+                editLocation={editLocation}
                 onToggleCheck={handleToggleCheck}
                 onDelete={handleDelete}
                 onStartEdit={handleStartEdit}
@@ -140,6 +158,7 @@ const FoodChecklist = ({ foods, onUpdateFoods }) => {
                 onCancelEdit={handleCancelEdit}
                 setEditText={setEditText}
                 setEditNotes={setEditNotes}
+                setEditLocation={setEditLocation}
               />
             ))}
           </div>
@@ -162,13 +181,15 @@ const FoodItem = ({
   isEditing,
   editText,
   editNotes,
+  editLocation,
   onToggleCheck,
   onDelete,
   onStartEdit,
   onSaveEdit,
   onCancelEdit,
   setEditText,
-  setEditNotes
+  setEditNotes,
+  setEditLocation
 }) => {
   if (isEditing) {
     return (
@@ -185,6 +206,13 @@ const FoodItem = ({
           value={editNotes}
           onChange={(e) => setEditNotes(e.target.value)}
           placeholder="Notes (optional)"
+          className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-800 text-sm"
+        />
+        <input
+          type="text"
+          value={editLocation}
+          onChange={(e) => setEditLocation(e.target.value)}
+          placeholder="Location (optional)"
           className="w-full px-3 py-2 rounded-lg bg-white/90 text-gray-800 text-sm"
         />
         <div className="flex gap-2">
@@ -232,6 +260,17 @@ const FoodItem = ({
           <p className={`text-sm mt-0.5 ${food.checked ? 'text-white/40' : 'text-white/60'}`}>
             {food.notes}
           </p>
+        )}
+        {food.location && (
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(food.location)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-200 hover:bg-blue-500/50 transition-colors text-xs"
+          >
+            <MapPin className="w-3 h-3" />
+            {food.location}
+          </a>
         )}
       </div>
 
