@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Snowflake, Edit3, Clock } from 'lucide-react';
 import { initialItineraryData } from '../data/itineraryData';
-import { supabase, fetchItinerary, saveItinerary, deleteItinerary } from '../lib/supabase';
+import { supabase, fetchItinerary, saveItinerary, deleteItinerary, fetchFoods, saveFoods } from '../lib/supabase';
 import Snowflakes from './Snowflakes';
 import DayCard from './DayCard';
 import MapTab from './MapTab';
+import FoodChecklist from './FoodChecklist';
 
 const STORAGE_KEY = 'hokkaido-itinerary';
+const FOODS_STORAGE_KEY = 'hokkaido-foods';
 const SORT_PREF_KEY = 'hokkaido-autosort';
 
 const JapanItinerary = () => {
@@ -24,7 +26,9 @@ const JapanItinerary = () => {
       return true;
     }
   });
+  const [foods, setFoods] = useState([]);
   const isInitialLoad = useRef(true);
+  const isInitialFoodsLoad = useRef(true);
 
   // Persist sort preference
   useEffect(() => {
@@ -58,11 +62,30 @@ const JapanItinerary = () => {
             // Use default data
           }
         }
+
+        // Load foods
+        const foodsData = await fetchFoods();
+        if (foodsData) {
+          setFoods(foodsData);
+        } else {
+          try {
+            const savedFoods = localStorage.getItem(FOODS_STORAGE_KEY);
+            if (savedFoods) {
+              const parsed = JSON.parse(savedFoods);
+              setFoods(parsed);
+              await saveFoods(parsed);
+            }
+          } catch {
+            // Use empty array
+          }
+        }
       } else {
         // No Supabase, use localStorage
         try {
           const saved = localStorage.getItem(STORAGE_KEY);
           if (saved) setItinerary(JSON.parse(saved));
+          const savedFoods = localStorage.getItem(FOODS_STORAGE_KEY);
+          if (savedFoods) setFoods(JSON.parse(savedFoods));
         } catch {
           // Use default data
         }
@@ -70,6 +93,7 @@ const JapanItinerary = () => {
 
       setIsLoading(false);
       isInitialLoad.current = false;
+      isInitialFoodsLoad.current = false;
     };
 
     loadData();
@@ -100,9 +124,29 @@ const JapanItinerary = () => {
     persistData();
   }, [itinerary]);
 
+  // Persist foods changes
+  useEffect(() => {
+    if (isInitialFoodsLoad.current) return;
+
+    const persistFoods = async () => {
+      try {
+        localStorage.setItem(FOODS_STORAGE_KEY, JSON.stringify(foods));
+      } catch (error) {
+        console.error('Failed to save foods to localStorage:', error);
+      }
+
+      if (supabase) {
+        await saveFoods(foods);
+      }
+    };
+
+    persistFoods();
+  }, [foods]);
+
   const tabs = [
     { id: 'itinerary', label: 'Itinerary', icon: '📅' },
     { id: 'map', label: 'Map', icon: '🗺️' },
+    { id: 'food', label: 'Food', icon: '🍜' },
   ];
 
   const handleUpdateDay = (updatedDay) => {
@@ -231,6 +275,10 @@ const JapanItinerary = () => {
         )}
 
         {!isLoading && activeTab === 'map' && <MapTab itinerary={itinerary} />}
+
+        {!isLoading && activeTab === 'food' && (
+          <FoodChecklist foods={foods} onUpdateFoods={setFoods} />
+        )}
       </div>
 
       <div className="relative z-10 text-center pb-8 text-white/50 text-xs">

@@ -66,3 +66,43 @@ export const deleteItinerary = async (userId = 'default') => {
 
   return true;
 };
+
+// Helper functions for foods operations (stored in same table with different user_id)
+export const fetchFoods = async (userId = 'default_foods') => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('itineraries')
+    .select('data')
+    .eq('user_id', userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching foods:', error);
+    return null;
+  }
+
+  return data?.data || null;
+};
+
+export const saveFoods = async (foodsData, userId = 'default_foods') => {
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from('itineraries')
+    .upsert(
+      {
+        user_id: userId,
+        data: foodsData,
+        updated_at: new Date().toISOString()
+      },
+      { onConflict: 'user_id' }
+    );
+
+  if (error) {
+    console.error('Error saving foods:', error);
+    return false;
+  }
+
+  return true;
+};
