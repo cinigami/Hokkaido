@@ -5,9 +5,7 @@ const ActivityEditor = ({ activity, onSave, onCancel, onDelete }) => {
   const [form, setForm] = useState({
     time: activity?.time || "",
     activity: activity?.activity || "",
-    locationName: activity?.location?.name || "",
-    locationLat: activity?.location?.lat || "",
-    locationLng: activity?.location?.lng || "",
+    location: activity?.location?.name || activity?.location || "",
   });
   const [errors, setErrors] = useState({});
 
@@ -32,18 +30,14 @@ const ActivityEditor = ({ activity, onSave, onCancel, onDelete }) => {
       time: form.time.trim(),
       activity: form.activity.trim(),
       icon: activity?.icon || "MapPin",
-      location: form.locationName.trim() ? {
-        name: form.locationName.trim(),
-        lat: parseFloat(form.locationLat) || 0,
-        lng: parseFloat(form.locationLng) || 0,
-      } : null,
+      location: form.location.trim() || null,
     };
     onSave(newActivity);
   };
 
   const searchLocation = () => {
-    if (form.locationName) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.locationName)}`, '_blank');
+    if (form.location) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(form.location)}`, '_blank');
     }
   };
 
@@ -128,9 +122,9 @@ const ActivityEditor = ({ activity, onSave, onCancel, onDelete }) => {
             )}
           </div>
 
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">Location (Optional)</label>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="location-input" className="block text-sm font-medium text-gray-700">Location (Optional)</label>
               <button
                 type="button"
                 onClick={searchLocation}
@@ -141,34 +135,13 @@ const ActivityEditor = ({ activity, onSave, onCancel, onDelete }) => {
               </button>
             </div>
             <input
-              id="location-name-input"
+              id="location-input"
               type="text"
-              value={form.locationName}
-              onChange={(e) => setForm({...form, locationName: e.target.value})}
-              placeholder="Location name"
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={form.location}
+              onChange={(e) => setForm({...form, location: e.target.value})}
+              placeholder="e.g., Nijo Market, Sapporo"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                id="latitude-input"
-                type="text"
-                value={form.locationLat}
-                onChange={(e) => setForm({...form, locationLat: e.target.value})}
-                placeholder="Latitude"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                aria-label="Latitude"
-              />
-              <input
-                id="longitude-input"
-                type="text"
-                value={form.locationLng}
-                onChange={(e) => setForm({...form, locationLng: e.target.value})}
-                placeholder="Longitude"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                aria-label="Longitude"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">Find coordinates: Right-click location in Google Maps</p>
           </div>
         </div>
 

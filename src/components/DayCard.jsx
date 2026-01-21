@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Edit3, Plus, Clock, ExternalLink } from 'lucide-react';
+import { ChevronDown, ChevronUp, Edit3, Plus, Clock, ExternalLink, MapPin } from 'lucide-react';
 import { getIcon } from '../utils/iconMap';
-import MapsButton from './MapsButton';
 import ActivityEditor from './ActivityEditor';
 import { sortDayItems } from '../utils/timeSort';
 
@@ -134,9 +133,18 @@ const DayCard = ({ day, isExpanded, onToggle, onUpdateDay, isEditMode, globalAut
                         )}
                       </p>
                       {activity.location && (
-                        <div className="mt-2">
-                          <MapsButton location={activity.location} />
-                        </div>
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            typeof activity.location === 'string' ? activity.location : activity.location.name
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors text-xs"
+                        >
+                          <MapPin className="w-3 h-3" />
+                          {typeof activity.location === 'string' ? activity.location : activity.location.name}
+                        </a>
                       )}
                     </div>
                     {isEditMode && (
